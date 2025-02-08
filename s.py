@@ -90,7 +90,7 @@ def send_file_in_chunks(file_path, server_ip, cipher_suite):
                 'file': (file_name, encrypted_chunk),
                 'chunk_number': (None, str(chunk_number)),
                 'total_size': (None, str(file_size)),
-                'key': (None, base64.urlsafe_b64encode(cipher_suite._signing_key).decode('utf-8'))
+                'key': (None, base64.urlsafe_b64encode(key).decode('utf-8'))
             }
             print(f"{Fore.CYAN}[ * ] Sending chunk {chunk_number // CHUNK_SIZE} of file {file_name}")
             print(f"{Fore.CYAN}[ + ] Chunk size: {len(encrypted_chunk)} bytes, Memory address: {hex(id(encrypted_chunk))}")
